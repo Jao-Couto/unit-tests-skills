@@ -119,9 +119,10 @@ fi
 # --- 4. Rule files sit in a known category ----------------------------------
 # This distribution ships unit-test rules only. Listing the categories that
 # belong here, rather than the ones that do not, also catches a category nobody
-# has invented yet.
+# has invented yet. Languages are added by generate-tests itself, so any
+# {language}/unit folder is a known category; RULES-INDEX.md says what each holds.
 echo "==> Rule files sit in a known category"
-ALLOWED_CATEGORIES='^(general|java/unit|post-generation)/[^/]+\.md$'
+ALLOWED_CATEGORIES='^(general|[a-z][a-z0-9-]*/unit|post-generation)/[^/]+\.md$'
 while IFS= read -r rule; do
   rel="${rule#*/rules/}"
   rel="${rel#tests/}"

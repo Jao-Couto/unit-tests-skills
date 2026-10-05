@@ -1,22 +1,22 @@
 {
-  "name": "mavka",
-  "description": "Skills from Mavka for writing and maintaining high-quality tests with AI coding agents.",
+  "name": "coutoit",
+  "description": "Fork of Unit Test Skills by Mavka AI, with C# rules and rules added per language on first use.",
   "owner": {
-    "name": "Mavka",
-    "url": "https://mavka.ai/"
+    "name": "João Couto",
+    "url": "https://github.com/Jao-Couto"
   },
   "plugins": [
     {
       "name": "unit-tests-skills",
       "source": "./",
       "displayName": "Unit Test Skills",
-      "description": "Generate high-quality unit tests. Analyzes code, prints a Given-When-Then test case list, then writes the tests and verifies they compile and pass. Java support covers JUnit 5, Mockito, and AssertJ.",
+      "description": "Generate high-quality unit tests. Analyzes code, prints a Given-When-Then test case list, then writes the tests and verifies they compile and pass. Ships rules for Java (JUnit 5, Mockito, AssertJ) and C# (xUnit, NUnit, MSTest), and drafts rules for another language on first use.",
       "author": {
         "name": "Mavka",
         "url": "https://mavka.ai/"
       },
-      "homepage": "https://mavka.ai/",
-      "repository": "https://github.com/mavka-ai/unit-tests-skills",
+      "homepage": "https://github.com/Jao-Couto/unit-tests-skills",
+      "repository": "https://github.com/Jao-Couto/unit-tests-skills",
       "license": "MIT",
       "category": "testing",
       "keywords": [
@@ -27,6 +27,11 @@
         "junit5",
         "mockito",
         "assertj",
+        "csharp",
+        "dotnet",
+        "xunit",
+        "nunit",
+        "mstest",
         "code-quality"
       ]
     }

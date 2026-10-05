@@ -1,14 +1,14 @@
 {
   "name": "unit-tests-skills",
   "displayName": "Unit Test Skills",
-  "description": "Generate high-quality unit tests. Analyzes code, prints a Given-When-Then test case list, then writes the tests and verifies they compile and pass. Java support covers JUnit 5, Mockito, and AssertJ.",
+  "description": "Generate high-quality unit tests. Analyzes code, prints a Given-When-Then test case list, then writes the tests and verifies they compile and pass. Ships rules for Java (JUnit 5, Mockito, AssertJ) and C# (xUnit, NUnit, MSTest), and drafts rules for another language on first use.",
   "version": "2026.9.15",
   "author": {
     "name": "Mavka",
     "url": "https://mavka.ai/"
   },
-  "homepage": "https://mavka.ai/",
-  "repository": "https://github.com/mavka-ai/unit-tests-skills",
+  "homepage": "https://github.com/Jao-Couto/unit-tests-skills",
+  "repository": "https://github.com/Jao-Couto/unit-tests-skills",
   "license": "MIT",
   "keywords": [
     "unit-testing",
@@ -18,6 +18,11 @@
     "junit5",
     "mockito",
     "assertj",
+    "csharp",
+    "dotnet",
+    "xunit",
+    "nunit",
+    "mstest",
     "code-quality"
   ]
 }

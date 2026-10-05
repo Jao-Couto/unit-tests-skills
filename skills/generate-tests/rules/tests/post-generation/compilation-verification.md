@@ -19,7 +19,7 @@ After generating test files, verify they compile successfully. Fix any issues be
 | Python | `python -m py_compile <test_file>` |
 | Go | `go build ./...` |
 | Rust | `cargo check --tests` |
-| .NET | `dotnet build` |
+| .NET | `dotnet build` (or `dotnet build {TestProject}` for the test project alone) |
 | Mix (Elixir) | `mix compile` |
 | sbt (Scala) | `sbt Test/compile` |
 | Swift | `swift build` |
@@ -77,6 +77,32 @@ package com.example.service; // Must match src/test/java/com/example/service/
 // Correct: assertThat(result).isEqualTo(123L);
 ```
 
+**Missing Using (C#):**
+```csharp
+// Error CS0246: The type or namespace name 'OrderRequest' could not be found
+// Fix: Add the missing using. Check the global usings first — the test .csproj
+// (<Using Include="Xunit" />) and <ImplicitUsings> may already cover it
+using Shop.Orders.Application;
+```
+
+**Missing Dependencies (.NET):**
+```xml
+<!-- A type from the project under test: reference that project -->
+<ProjectReference Include="..\..\src\Shop.Orders.Application\Shop.Orders.Application.csproj" />
+
+<!-- A package: with central package management (a Directory.Packages.props at the root),
+     the version goes there and the PackageReference carries none -->
+<PackageReference Include="NSubstitute" />
+```
+
+**Warnings Treated as Errors (C#):**
+```csharp
+// Error CS8625: Cannot convert null literal to non-nullable reference type
+// With <TreatWarningsAsErrors>true</TreatWarningsAsErrors>, every warning fails the build.
+// Fix the test (pass null only where the parameter is T?); never silence the warning
+// with #pragma warning disable or <NoWarn>
+```
+
 ### Verification Checklist
 
 - [ ] Test file is in correct directory
@@ -85,6 +111,7 @@ package com.example.service; // Must match src/test/java/com/example/service/
 - [ ] All dependencies are available
 - [ ] No syntax errors
 - [ ] Type compatibility is correct
+- [ ] No warnings, when the project treats warnings as errors
 - [ ] Compilation command succeeds
 
 ### Example Workflow

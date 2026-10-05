@@ -20,7 +20,12 @@ After tests compile successfully, run them and verify they pass. Tests that comp
 | npm/yarn | `npx jest {testFile}` or `npm test -- --testPathPattern={testFile}` |
 | Python | `python -m pytest {test_file} -v` |
 | Go | `go test -run {TestFuncName} ./...` |
-| .NET | `dotnet test --filter "FullyQualifiedName~{TestClassName}"` |
+| .NET, VSTest | `dotnet test {TestProject} --filter "FullyQualifiedName~{TestClassName}"` |
+| .NET, Microsoft.Testing.Platform | `dotnet test --project {TestProject} --filter-class "*{TestClassName}"` (xUnit v3; other frameworks take `--filter` with their own syntax) |
+
+   The .NET test runner is chosen in `global.json`: `"test": { "runner": "Microsoft.Testing.Platform" }`
+   selects Microsoft.Testing.Platform; without it, `dotnet test` uses VSTest. The VSTest
+   `--filter` expression does not work under Microsoft.Testing.Platform.
 
 2. **If any test fails:**
    - Read the failure output carefully
@@ -33,9 +38,10 @@ After tests compile successfully, run them and verify they pass. Tests that comp
    - Keep it in the file. A test you could not make pass is the most informative
      output of the whole run — it is either a bug in the production code or a
      wrong assumption about it, and that signal is worth more than a green build.
-   - Annotate it `@Disabled("<what it asserts, and the failure you could not resolve>")`
-     so it stays in the file, stays visible in the test report, and stays runnable
-     once the cause is understood
+   - Mark it skipped with `<what it asserts, and the failure you could not resolve>` as the
+     reason — `@Disabled("...")` in JUnit, `[Fact(Skip = "...")]` in xUnit, `[Ignore("...")]`
+     in NUnit and MSTest — so it stays in the file, stays visible in the test report, and
+     stays runnable once the cause is understood
    - Report it explicitly in the summary: the test name, what it asserts, the
      actual failure, and which of the two explanations you think is more likely
 
@@ -67,6 +73,15 @@ when(repository.findById("1")).thenReturn(Optional.of(user)); // Verify this is 
 // Failure: NPE when calling method on result
 // Fix: Check if mock returns null by default — add proper stubbing
 when(service.findById(any())).thenReturn(Optional.empty()); // stub before calling
+```
+
+**Exception type mismatch (C#):**
+```csharp
+// Failure: Assert.Throws() Failure: Exception type was not an exact match
+//          Expected: typeof(System.ArgumentException) Actual: typeof(System.ArgumentOutOfRangeException)
+// Fix: assert the exact type the code throws; accept derived types (xUnit Assert.ThrowsAny<T>,
+// NUnit Assert.Catch<T>) only when the contract allows any of them
+Assert.Throws<ArgumentOutOfRangeException>(() => calculatorService.Calculate(-1));
 ```
 
 ### IMPORTANT

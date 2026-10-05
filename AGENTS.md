@@ -38,7 +38,8 @@ the workflow belongs in both.
 Rules are inside each skill folder:
 
 - `generate-test-cases/rules/general/` — general rules only
-- `generate-tests/rules/tests/` — all rules (general, java, post-generation)
+- `generate-tests/rules/tests/` — all rules (general, one `{language}/unit/` folder per language, post-generation)
+- `generate-tests/rules/RULES-INDEX.md` — which language rule applies to which code type
 
 ## Plugin Validation
 
@@ -103,12 +104,13 @@ a pull request waiting on a check that will never arrive cannot merge.
 | Referenced rule files exist | A reference in `SKILL.md` (or `RULES-INDEX.md`) naming a file that is not on disk. References come in three valid shapes — `./rules/general/x.md` from the skill root, `general/x.md` from `rules/tests/`, and a bare `x.md` in prose — so a reference passes if any shape resolves. |
 | Every rule file is referenced | The reverse direction. A rule added to the tree but never named in `SKILL.md` is dead weight: nothing instructs the agent to read it. |
 | General rules are in sync | Each skill carries its own copy of the general rules, because a skill is installed standalone and has to be self-contained. Two copies can drift, and a drifted copy means the same request gets different rules depending on which skill the agent picked. |
-| Rule files sit in a known category | This distribution ships unit-test rules only. The check lists the categories that belong here (`general/`, `java/unit/`, `post-generation/`) rather than the ones that do not, so it also catches a category nobody has invented yet. |
+| Rule files sit in a known category | This distribution ships unit-test rules only. The check lists the categories that belong here (`general/`, any `{language}/unit/`, `post-generation/`) rather than the ones that do not, so it also catches a category nobody has invented yet. |
 
 ### Conventions that follow from this
 
 - A new rule takes two edits, not one: the file itself **and** an entry in the
-  relevant `SKILL.md`. The second check fails without it.
+  relevant `SKILL.md` — or, for a language rule, in that language's section of
+  `generate-tests/rules/RULES-INDEX.md`. The second check fails without it.
 - Edit general rules in both locations in the same commit. Fixing one copy and
   leaving the other for later fails the third check.
 
@@ -166,6 +168,12 @@ Skills here run end to end and print what they decided instead. Do not add a too
 that pauses for input, and do not set `context: fork` — a forked skill's output does
 not reach the user, which is the whole point of printing the plan.
 
+One exception, in `generate-tests`: when the target's language has no rules yet, the
+skill drafts them and stops for the user's approval ("Adding Rules for a New Language"
+in its `SKILL.md`). It asks in its reply rather than through a tool, so the stop works
+in every runtime. It stops because the new rules change every project's tests, not
+only the current one.
+
 ## Adding a New Rule
 
 Add rules inside the skill folder that uses them:
@@ -178,7 +186,9 @@ skills/{skill-name}/rules/
     {rule-name}.md
 ```
 
-Then list it in that skill's `SKILL.md` and run `./scripts/validate-rules.sh`.
+Then list it in that skill's `SKILL.md` — a language rule goes in that language's
+section of `generate-tests/rules/RULES-INDEX.md` instead — and run
+`./scripts/validate-rules.sh`.
 See [Rule Validation](#rule-validation) for what the checks enforce.
 
 ### Rule File Format

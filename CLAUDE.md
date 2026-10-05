@@ -15,9 +15,11 @@ skills/
     rules/general/        # General testing rules
   generate-tests/         # Skill: generate actual test code from cases
     SKILL.md
+    rules/RULES-INDEX.md  # Which language rule applies to which code type
     rules/tests/
       general/            # General testing rules (superset of generate-test-cases rules)
       java/unit/          # Java-specific rules (JUnit 5, Mockito, AssertJ)
+      csharp/unit/        # C#-specific rules (xUnit, NUnit, MSTest)
       post-generation/    # Compilation verification rules
 templates/
   AGENTS-SNIPPET.md       # Template users copy into their project's AGENTS.md
@@ -27,7 +29,7 @@ templates/
 
 | Command | Purpose |
 |---------|---------|
-| `/generate-tests <target>` | Generate unit tests for code. Runs the full workflow unattended: analyzes code, prints the test case list, generates test code, verifies it compiles and passes. Supports Java (JUnit 5, Mockito, AssertJ). |
+| `/generate-tests <target>` | Generate unit tests for code. Runs the full workflow unattended: analyzes code, prints the test case list, generates test code, verifies it compiles and passes. Supports Java (JUnit 5, Mockito, AssertJ) and C# (xUnit, NUnit, MSTest); for another language, drafts its rules and asks for approval first. |
 | `/generate-test-cases <target>` | Analyze code for test coverage and list needed test cases — without generating actual test code. Use for analysis-only. |
 
 ## Workflow
@@ -51,7 +53,7 @@ so the list stays auditable against the result.
 
 ## Rules
 
-Each skill's `SKILL.md` lists which rule files it reads. When a skill is invoked, the skill definition instructs the agent to read the rule files from the skill's own `rules/` directory. The `generate-tests` skill has a superset of rules (includes Java-specific and post-generation rules).
+Each skill's `SKILL.md` lists which rule files it reads. When a skill is invoked, the skill definition instructs the agent to read the rule files from the skill's own `rules/` directory. The `generate-tests` skill has a superset of rules (includes language-specific and post-generation rules); its `rules/RULES-INDEX.md` maps each language's code types to its rule files.
 
 Key rule topics:
 - **INCLUDE/EXCLUDE criteria** (`test-case-generation-strategy.md`) — what to test vs. skip
@@ -60,6 +62,8 @@ Key rule topics:
 - **Existing test awareness** (`existing-test-awareness.md`) — check for existing tests before generating; match project conventions; avoid duplicates
 - **Code context analysis** (`code-context-analysis.md`) — read DTOs, entities, enums, and other dependency classes before writing tests
 - **Java specifics** — JUnit 5 + Mockito + AssertJ; `@SpringBootTest` is FORBIDDEN in unit tests; use `ArgumentCaptor` to verify DTO/model fields; use `any()` only for irrelevant arguments; `@WebMvcTest` for controllers (`controller-test-rules.md`)
+- **C# specifics** — xUnit, NUnit or MSTest; no host or DI container in unit tests; test doubles from the project's mocking library or hand-written fakes, asserting what they recorded; persistence adapters against a real database created for the test (`repository-test-rules.md`)
+- **New languages** — `generate-tests` drafts `rules/tests/{language}/unit/` and its `RULES-INDEX.md` section, and writes them only after the user approves
 - **Post-generation verification** — compilation verification (`compilation-verification.md`) AND test execution verification (`test-execution-verification.md`) — tests must both compile and pass
 
 ## Plugin Distribution
@@ -70,6 +74,14 @@ This repository is also a Claude Code plugin and marketplace, declared in
 ```
 /plugin marketplace add mavka-ai/unit-tests-skills
 /plugin install unit-tests-skills@mavka
+```
+
+This fork is installed from a local clone, which Claude Code loads in place, so edits
+take effect at the next session or `/reload-plugins`:
+
+```
+claude plugin marketplace add <path-to-this-clone>
+claude plugin install unit-tests-skills@coutoit --scope user
 ```
 
 **Any change to `.claude-plugin/` or `skills/` must be validated before pushing:**

@@ -1,6 +1,6 @@
 ---
 name: generate-tests
-description: "Use when the user asks to generate, create, write, or add unit tests for existing code, or to cover a class, method, or file with tests — including Java targets using JUnit 5, Mockito, or AssertJ. Not for analysis-only requests that stop at listing test cases."
+description: "Use when the user asks to generate, create, write, or add unit tests for existing code, or to cover a class, method, or file with tests — including Java (JUnit 5, Mockito, AssertJ) and C# (xUnit, NUnit, MSTest) targets, and other languages, for which it first drafts rules for approval. Not for analysis-only requests that stop at listing test cases."
 allowed-tools: Read, Write, Glob, Grep, Bash
 argument-hint: "<file-path-or-class>"
 ---
@@ -24,7 +24,7 @@ You will analyze code and generate high-quality unit tests for a given target.
 
 ### Step 1: Read Rules and Analyze Context
 
-1. **Read the relevant rules** from `./rules/tests/` based on code type (see Rules Reference below)
+1. **Read the relevant rules** from `./rules/tests/` based on the target's language and code type (see Rules Reference below). `./rules/RULES-INDEX.md` maps each language's code types to its rule files; if it has no section for the target's language, go to "Adding Rules for a New Language" below before anything else
 2. **Read the target** source file/class/method
 3. **Read dependencies**: Follow imports to read DTOs, entities, enums, custom exceptions, and other types referenced by the target (as specified in `code-context-analysis` rule)
 4. **Check for existing tests**: Search for `{ClassName}Test` or `{ClassName}Tests` in the test directory (as specified in `existing-test-awareness` rule)
@@ -75,13 +75,14 @@ Examples:
 - `calculateTotal_emptyList_throwsIllegalArgumentException`
 - `getUser_unauthorized_returns401`
 
+Write the name in the casing the target language gives method names; the language's test
+template says which (C#: `CalculateTotal_ValidProducts_ReturnsSum`).
+
 ### Step 3: Generate Test Code
 
-1. Determine code type and apply the matching rules:
-   - **Controller** → Apply `controller-test-rules.md` (use `@WebMvcTest`, MockMvc patterns)
-   - **Service / Domain logic** → Apply `domain-service-rules.md` (use `@ExtendWith(MockitoExtension.class)`, Mockito patterns)
-   - **Repository / Messaging / Other types** → Apply `domain-service-rules.md` as baseline; inform the user that type-specific rules are not yet available
-   - **All Java code** → Always apply `java-test-template.md`, `argument-matching.md`, `json-serialization.md` regardless of code type
+1. Determine code type and apply the matching rules from the language's section in `./rules/RULES-INDEX.md`:
+   - The rule file the section maps to the code type; a code type it does not name takes the section's baseline, and you inform the user that type-specific rules are not yet available
+   - Every file the section lists to always apply, regardless of code type
 2. If an existing test class was found in Step 1, add new test methods to it (do not create a duplicate file)
 3. Generate tests following all rules and the test cases from Step 2
 4. Create or update the test file using the Write tool
@@ -91,8 +92,43 @@ Examples:
 1. Run compilation and fix any issues (max 5 attempts — see `compilation-verification.md`)
 2. Run the generated test class to verify all tests pass (see `test-execution-verification.md`)
 3. Fix any failing tests by changing the test — production code stays as it is
-4. If a test resists fixing after 3 attempts, keep it in the file: mark it `@Disabled`
-   with the reason and report it (see `test-execution-verification.md`)
+4. If a test resists fixing after 3 attempts, keep it in the file: mark it skipped with
+   the reason (`@Disabled`, `[Fact(Skip = ...)]`, `[Ignore]`) and report it (see `test-execution-verification.md`)
+
+---
+
+## Adding Rules for a New Language
+
+Run this when `./rules/RULES-INDEX.md` has no section for the target's language. The rules
+you add live in this skill, so they apply to every project that uses it — not only to the
+current one.
+
+1. **Learn the stack** from the project: its build and package files
+   (`technology-stack-detection.md`), the test framework, assertion library, mocking library
+   and test runner its test projects reference, and 2-3 existing tests.
+2. **Draft `rules/tests/{language}/unit/`** in this skill's own directory
+   (`${CLAUDE_SKILL_DIR}/rules/tests/`), never inside the project under test. Use
+   `java/unit/` and `csharp/unit/` as models and keep their shape:
+   - A test template named after the language, as `csharp/unit/csharp-test-template.md` is:
+     structure, FORBIDDEN setups, and a table translating the Java terms the general rules use
+   - `domain-service-rules.md`: test doubles for services and domain logic
+   - `argument-matching.md`: assert what a double received, not only that it was called
+   - `json-serialization.md`: explicit JSON, when the ecosystem serializes JSON
+   - One file per code type whose tests need the framework or real I/O, as
+     `controller-test-rules.md` and `repository-test-rules.md` do — only for code types the
+     project has
+3. **Draft the language's section** for `./rules/RULES-INDEX.md`, and the language's compile
+   and single-class test commands for the two `post-generation/` tables when they are missing.
+4. **Describe the ecosystem, not the project.** A choice only this project makes — its own
+   helpers, its domain rules, a library it forbids — belongs in the project's `.claude/rules/`,
+   not here.
+5. **Stop and show the drafts** — each file's path and full content — and ask the user to
+   approve them. This is the one point where this skill waits for the user, because the rules
+   change every project's tests. Write nothing until they approve; a reply asking for changes
+   means a new draft.
+6. **After approval**, write the files, then run `${CLAUDE_SKILL_DIR}/../../scripts/validate-rules.sh`
+   when it exists and fix what it reports. If this skill's directory is a git checkout, tell
+   the user the new files are there to commit. Then continue from Step 1.
 
 ---
 
@@ -102,7 +138,7 @@ Examples:
 If the specified target does not exist, inform the user with the exact path you searched and ask for clarification.
 
 ### Unsupported language
-If the target code is in a language without specific rules (not Java), apply only the general rules and inform the user that language-specific conventions may need manual review.
+If the target code is in a language without a section in `./rules/RULES-INDEX.md`, follow "Adding Rules for a New Language". If the user declines the drafted rules, apply only the general rules and inform the user that language-specific conventions may need manual review.
 
 ### Compilation keeps failing
 If compilation fails after 5 attempts:
@@ -168,13 +204,8 @@ Result: Complete test file delivered with 7 passing tests.
 - `general/existing-test-awareness.md` - Check for existing tests, match project conventions
 - `general/code-context-analysis.md` - Read dependencies before writing tests
 
-### Java Unit Tests
-- `java/unit/java-test-template.md` - Basic template, FORBIDDEN annotations
-- `java/unit/json-serialization.md` - Use explicit JSON literals
-- `java/unit/argument-matching.md` - Use ArgumentCaptor, not any()
-- `java/unit/logging-rules.md` - OutputCaptureExtension for logs
-- `java/unit/domain-service-rules.md` - Mockito patterns for services
-- `java/unit/controller-test-rules.md` - @WebMvcTest and MockMvc patterns for controllers
+### Language Rules
+- `./rules/RULES-INDEX.md` - Rule files per language and code type: Java (`java/unit/`) and C# (`csharp/unit/`)
 
 ### Post-Generation
 - `post-generation/compilation-verification.md` - Verify compilation

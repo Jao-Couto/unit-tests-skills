@@ -1,3 +1,11 @@
+> **Fork note.** This is a fork of [Unit Test Skills by Mavka AI](https://github.com/mavka-ai/unit-tests-skills),
+> not an official release (see [TRADEMARK.md](TRADEMARK.md)). It adds C# rules (xUnit, NUnit, MSTest)
+> and `skills/generate-tests/rules/RULES-INDEX.md`, so `generate-tests` can draft rules for another
+> language on first use and write them after the user approves. Install it from a local clone:
+> `claude plugin marketplace add <path-to-clone>`, then
+> `claude plugin install unit-tests-skills@coutoit --scope user`.
+> The rest of this README describes the original.
+
 <p align="center">
   <a href="https://mavka.ai/">
     <img src="assets/mavka-ai-logo.svg" alt="Mavka AI" width="220">
